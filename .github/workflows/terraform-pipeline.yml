@@ -53,10 +53,8 @@ jobs:
   build:
     name: Terraform Plan
     runs-on: ubuntu-latest
-    # Removed environment: ${{ inputs.environment }} from here
-    # This allows it to use Repository Secrets for Planning
     steps:
-      - name: Checkout
+      - name: Checkout Caller Repo
         uses: actions/checkout@v4
 
       - name: Azure Login
@@ -67,12 +65,12 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Setup
-        uses: ./.github/actions/terraform-setup
+        uses: varunsoam/pipeline-template/.github/actions/terraform-setup@main
         with:
           terraform_version: ${{ inputs.terraformVersion }}
 
       - name: Init
-        uses: ./.github/actions/terraform-init
+        uses: varunsoam/pipeline-template/.github/actions/terraform-init@main
         with:
           working_directory: ${{ inputs.workingDirectory }}
           resource_group_name: ${{ inputs.resourceGroupName }}
@@ -82,7 +80,7 @@ jobs:
           init_options: ${{ inputs.initOptions }}
 
       - name: Plan
-        uses: ./.github/actions/terraform-plan
+        uses: varunsoam/pipeline-template/.github/actions/terraform-plan@main
         with:
           working_directory: ${{ inputs.workingDirectory }}
           plan_options: ${{ inputs.planOptions }}
@@ -117,9 +115,9 @@ jobs:
       (needs.scan.result == 'success' || needs.scan.result == 'skipped') &&
       github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }} # Only Apply stage needs environment for Approval
+    environment: ${{ inputs.environment }}
     steps:
-      - name: Checkout
+      - name: Checkout Caller Repo
         uses: actions/checkout@v4
       
       - name: Azure Login
@@ -130,7 +128,7 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Setup
-        uses: ./.github/actions/terraform-setup
+        uses: varunsoam/pipeline-template/.github/actions/terraform-setup@main
         with:
           terraform_version: ${{ inputs.terraformVersion }}
 
@@ -141,7 +139,7 @@ jobs:
           path: ${{ inputs.workingDirectory }}
 
       - name: Init
-        uses: ./.github/actions/terraform-init
+        uses: varunsoam/pipeline-template/.github/actions/terraform-init@main
         with:
           working_directory: ${{ inputs.workingDirectory }}
           resource_group_name: ${{ inputs.resourceGroupName }}
@@ -151,6 +149,6 @@ jobs:
           init_options: ${{ inputs.initOptions }}
 
       - name: Apply
-        uses: ./.github/actions/terraform-apply
+        uses: varunsoam/pipeline-template/.github/actions/terraform-apply@main
         with:
           working_directory: ${{ inputs.workingDirectory }}
