@@ -59,7 +59,7 @@ jobs:
   build:
     name: Terraform Plan
     runs-on: ubuntu-latest
-    # Removed environment: ${{ inputs.environment }} so it uses 'branch: main' OIDC subject
+    environment: ${{ inputs.environment }} # Added back to match Azure Environment OIDC
     steps:
       - name: Checkout Caller Repo
         uses: actions/checkout@v4
@@ -79,7 +79,7 @@ jobs:
       - name: Init
         uses: varunsoam/pipeline-template/.github/actions/terraform-init@main
         with:
-          working_directory: ${{ inputs.workingDirectory }}
+          working_directory: ${{ inputs.working_directory }}
           resource_group_name: ${{ inputs.resourceGroupName }}
           storage_account_name: ${{ inputs.storageAccountName }}
           container_name: ${{ inputs.containerName }}
