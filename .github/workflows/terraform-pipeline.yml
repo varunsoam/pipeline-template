@@ -59,7 +59,7 @@ jobs:
   build:
     name: Terraform Plan
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }} # Restored this so it can see Environment Variables
+    # Removed environment: ${{ inputs.environment }} so it uses 'branch: main' OIDC subject
     steps:
       - name: Checkout Caller Repo
         uses: actions/checkout@v4
