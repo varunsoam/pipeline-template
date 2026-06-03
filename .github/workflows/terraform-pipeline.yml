@@ -53,7 +53,8 @@ jobs:
   build:
     name: Terraform Plan
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    # Removed environment: ${{ inputs.environment }} from here
+    # This allows it to use Repository Secrets for Planning
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -116,7 +117,7 @@ jobs:
       (needs.scan.result == 'success' || needs.scan.result == 'skipped') &&
       github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    environment: ${{ inputs.environment }} # Only Apply stage needs environment for Approval
     steps:
       - name: Checkout
         uses: actions/checkout@v4
