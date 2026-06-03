@@ -1,0 +1,36 @@
+name: 'Terraform Init'
+description: 'Initialize Terraform with Azure Backend'
+inputs:
+  working_directory:
+    description: 'Working directory'
+    required: true
+  resource_group_name:
+    description: 'Azure RM Resource Group'
+    required: true
+  storage_account_name:
+    description: 'Azure RM Storage Account'
+    required: true
+  container_name:
+    description: 'Azure RM Container Name'
+    required: true
+  key:
+    description: 'Azure RM Backend Key'
+    required: true
+  init_options:
+    description: 'Additional init options'
+    required: false
+    default: '-reconfigure -input=false'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Terraform Init
+      shell: bash
+      working-directory: ${{ inputs.working_directory }}
+      run: |
+        terraform init \
+          -backend-config="resource_group_name=${{ inputs.resource_group_name }}" \
+          -backend-config="storage_account_name=${{ inputs.storage_account_name }}" \
+          -backend-config="container_name=${{ inputs.container_name }}" \
+          -backend-config="key=${{ inputs.key }}" \
+          ${{ inputs.init_options }}

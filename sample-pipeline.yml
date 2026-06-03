@@ -1,0 +1,40 @@
+name: func-app-jk Deployment
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      runCheckov:
+        description: 'Run Checkov Scan'
+        required: true
+        type: boolean
+        default: false
+
+env:
+  ENVIRONMENT: 'prod'
+  WORKING_DIRECTORY: '.'
+  TF_VERSION: '1.11.0'
+  # Yahan apni details daalein
+  RG_NAME: 'rg-terraform-backend'
+  STORAGE_NAME: 'stjkbackend'
+  CONTAINER_NAME: 'tfstate'
+
+jobs:
+  deploy:
+    # Ye reusable workflow ko call kar raha hai
+    uses: ./.github/workflows/terraform-pipeline.yml
+    with:
+      workingDirectory: ${{ env.WORKING_DIRECTORY }}
+      resourceGroupName: ${{ env.RG_NAME }}
+      storageAccountName: ${{ env.STORAGE_NAME }}
+      containerName: ${{ env.CONTAINER_NAME }}
+      backendKey: ${{ env.ENVIRONMENT }}.tfstate
+      environment: ${{ env.ENVIRONMENT }}
+      terraformVersion: ${{ env.TF_VERSION }}
+      runCheckov: ${{ github.event.inputs.runCheckov || false }}
+    secrets:
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}

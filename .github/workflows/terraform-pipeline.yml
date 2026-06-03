@@ -1,0 +1,151 @@
+name: Terraform Main Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      workingDirectory:
+        required: true
+        type: string
+      resourceGroupName:
+        required: true
+        type: string
+      storageAccountName:
+        required: true
+        type: string
+      containerName:
+        required: true
+        type: string
+      backendKey:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
+      terraformVersion:
+        required: false
+        type: string
+        default: '1.11.0'
+      runCheckov:
+        required: false
+        type: boolean
+        default: false
+      initOptions:
+        required: false
+        type: string
+        default: '-reconfigure -input=false'
+      planOptions:
+        required: false
+        type: string
+        default: ''
+    secrets:
+      AZURE_CLIENT_ID:
+        required: true
+      AZURE_TENANT_ID:
+        required: true
+      AZURE_SUBSCRIPTION_ID:
+        required: true
+
+jobs:
+  build:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup
+        uses: ./.github/actions/terraform-setup
+        with:
+          terraform_version: ${{ inputs.terraformVersion }}
+
+      - name: Init
+        uses: ./.github/actions/terraform-init
+        with:
+          working_directory: ${{ inputs.workingDirectory }}
+          resource_group_name: ${{ inputs.resourceGroupName }}
+          storage_account_name: ${{ inputs.storageAccountName }}
+          container_name: ${{ inputs.containerName }}
+          key: ${{ inputs.backendKey }}
+          init_options: ${{ inputs.initOptions }}
+
+      - name: Plan
+        uses: ./.github/actions/terraform-plan
+        with:
+          working_directory: ${{ inputs.workingDirectory }}
+          plan_options: ${{ inputs.planOptions }}
+
+      - name: Upload Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: ${{ inputs.workingDirectory }}/tfplan
+
+  scan:
+    name: Checkov Scan
+    needs: build
+    if: inputs.runCheckov == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Checkov Scan
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: ${{ inputs.workingDirectory }}
+          framework: terraform
+          skip_check: CKV_AZURE_183,CKV2_AZURE_31
+
+  apply:
+    name: Terraform Apply
+    needs: [build, scan]
+    if: |
+      always() && 
+      needs.build.result == 'success' && 
+      (needs.scan.result == 'success' || needs.scan.result == 'skipped') &&
+      github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup
+        uses: ./.github/actions/terraform-setup
+        with:
+          terraform_version: ${{ inputs.terraformVersion }}
+
+      - name: Download Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: ${{ inputs.workingDirectory }}
+
+      - name: Init
+        uses: ./.github/actions/terraform-init
+        with:
+          working_directory: ${{ inputs.workingDirectory }}
+          resource_group_name: ${{ inputs.resourceGroupName }}
+          storage_account_name: ${{ inputs.storageAccountName }}
+          container_name: ${{ inputs.containerName }}
+          key: ${{ inputs.backendKey }}
+          init_options: ${{ inputs.initOptions }}
+
+      - name: Apply
+        uses: ./.github/actions/terraform-apply
+        with:
+          working_directory: ${{ inputs.workingDirectory }}
