@@ -59,6 +59,7 @@ jobs:
   build:
     name: Terraform Plan
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }} # Restored this so it can see Environment Variables
     steps:
       - name: Checkout Caller Repo
         uses: actions/checkout@v4
