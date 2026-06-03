@@ -49,17 +49,16 @@ permissions:
   id-token: write
   contents: read
 
-env:
-  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-  ARM_USE_OIDC: true
-
 jobs:
   build:
     name: Terraform Plan
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }} # Added back to match Azure Environment OIDC
+    environment: ${{ inputs.environment }}
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: true
     steps:
       - name: Checkout Caller Repo
         uses: actions/checkout@v4
@@ -79,7 +78,7 @@ jobs:
       - name: Init
         uses: varunsoam/pipeline-template/.github/actions/terraform-init@main
         with:
-          working_directory: ${{ inputs.working_directory }}
+          working_directory: ${{ inputs.workingDirectory }}
           resource_group_name: ${{ inputs.resourceGroupName }}
           storage_account_name: ${{ inputs.storageAccountName }}
           container_name: ${{ inputs.containerName }}
@@ -123,6 +122,11 @@ jobs:
       github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: true
     steps:
       - name: Checkout Caller Repo
         uses: actions/checkout@v4
