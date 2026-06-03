@@ -53,7 +53,7 @@ jobs:
   build:
     name: Terraform Plan
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    # Removed environment: prod from here to avoid approval on Plan
     env:
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
@@ -121,7 +121,7 @@ jobs:
       (needs.scan.result == 'success' || needs.scan.result == 'skipped') &&
       github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    environment: ${{ inputs.environment }} # Approval only on Apply
     env:
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
