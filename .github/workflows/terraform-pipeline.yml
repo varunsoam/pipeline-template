@@ -63,7 +63,7 @@ jobs:
   build:
     name: Terraform Plan
     runs-on: ${{ inputs.pool }}
-    environment: ${{ inputs.environment }}
+    # environment: ${{ inputs.environment }} <-- Removed to avoid approval gate on Plan
     steps:
       - name: Checkout Caller Repo
         uses: actions/checkout@v4
@@ -126,7 +126,7 @@ jobs:
       (needs.scan.result == 'success' || needs.scan.result == 'skipped') &&
       github.ref == 'refs/heads/main'
     runs-on: ${{ inputs.pool }}
-    environment: ${{ inputs.environment }}
+    environment: ${{ inputs.environment }} # Kept for manual approval gate
     env:
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
