@@ -53,15 +53,17 @@ permissions:
   id-token: write
   contents: read
 
+env:
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  ARM_USE_OIDC: true
+
 jobs:
   build:
     name: Terraform Plan
     runs-on: ${{ inputs.pool }}
-    env:
-      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      ARM_USE_OIDC: true
+    environment: ${{ inputs.environment }}
     steps:
       - name: Checkout Caller Repo
         uses: actions/checkout@v4
@@ -74,12 +76,12 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Setup
-        uses: varunsoam/pipeline-template/.github/actions/terraform-setup@main
+        uses: varunsoam007/pipeline-template/.github/actions/terraform-setup@main
         with:
           terraform_version: ${{ inputs.terraformVersion }}
 
       - name: Init
-        uses: varunsoam/pipeline-template/.github/actions/terraform-init@main
+        uses: varunsoam007/pipeline-template/.github/actions/terraform-init@main
         with:
           working_directory: ${{ inputs.workingDirectory }}
           resource_group_name: ${{ inputs.resourceGroupName }}
@@ -89,7 +91,7 @@ jobs:
           init_options: ${{ inputs.initOptions }}
 
       - name: Plan
-        uses: varunsoam/pipeline-template/.github/actions/terraform-plan@main
+        uses: varunsoam007/pipeline-template/.github/actions/terraform-plan@main
         with:
           working_directory: ${{ inputs.workingDirectory }}
           plan_options: ${{ inputs.planOptions }}
@@ -142,7 +144,7 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Setup
-        uses: varunsoam/pipeline-template/.github/actions/terraform-setup@main
+        uses: varunsoam007/pipeline-template/.github/actions/terraform-setup@main
         with:
           terraform_version: ${{ inputs.terraformVersion }}
 
@@ -153,7 +155,7 @@ jobs:
           path: ${{ inputs.workingDirectory }}
 
       - name: Init
-        uses: varunsoam/pipeline-template/.github/actions/terraform-init@main
+        uses: varunsoam007/pipeline-template/.github/actions/terraform-init@main
         with:
           working_directory: ${{ inputs.workingDirectory }}
           resource_group_name: ${{ inputs.resourceGroupName }}
@@ -163,6 +165,6 @@ jobs:
           init_options: ${{ inputs.initOptions }}
 
       - name: Apply
-        uses: varunsoam/pipeline-template/.github/actions/terraform-apply@main
+        uses: varunsoam007/pipeline-template/.github/actions/terraform-apply@main
         with:
           working_directory: ${{ inputs.workingDirectory }}
