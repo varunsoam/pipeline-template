@@ -21,6 +21,10 @@ on:
       environment:
         required: false
         type: string
+      pool:
+        required: false
+        type: string
+        default: 'ubuntu-latest'
       terraformVersion:
         required: false
         type: string
@@ -52,8 +56,7 @@ permissions:
 jobs:
   build:
     name: Terraform Plan
-    runs-on: ubuntu-latest
-    # Removed environment: prod from here to avoid approval on Plan
+    runs-on: ${{ inputs.pool }}
     env:
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
@@ -101,7 +104,7 @@ jobs:
     name: Checkov Scan
     needs: build
     if: inputs.runCheckov == true
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.pool }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -120,8 +123,8 @@ jobs:
       needs.build.result == 'success' && 
       (needs.scan.result == 'success' || needs.scan.result == 'skipped') &&
       github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }} # Approval only on Apply
+    runs-on: ${{ inputs.pool }}
+    environment: ${{ inputs.environment }}
     env:
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
